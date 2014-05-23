@@ -28,29 +28,32 @@ bsVolumeLabel: 	        DB "BOOT FLOPPY"	; Must be 11 bytes
 bsFileSystem: 	        DB "FAT12   "		; Must be 08 bytes
 
 ; Main Routine
+
+
 boot:	
+
+.reset_floppy:
+	mov		ax, 0x0
+	int 	0x13
+
+.read:
 	mov		dl, 0x0					; drive number. Remember Drive 0 is floppy drive.
 	mov		dh, 0x0					; head number (0=base)
-	mov		ch, 0x0				; we are reading the second sector past us, so its still on track 1
+	mov		ch, 0x01				; we are reading the second sector past us, so its still on track 1
 	mov		cl, 0x02				; sector to read (The second sector)
-	mov		bx, 0x1000
+	mov		bx, 0x1000				
 	mov		es, bx
-	xor		bx, bx 					; reset BX
-	
-.Read:
+	mov		ds, bx
+	xor		bx, bx 					; set buffer
 	mov		ah, 0x02				; read floppy sector function
 	mov		al, 0x01				; read 1 sector
 	int		0x13					; call BIOS - Read the sector
-	jc		.Read
-	
-	mov		ax, 0x1000				; we are going to read sector to into address 0x1000:0
-	mov		ds, ax					; Set segments register to new location
-	mov		es, ax
-	mov		fs, ax
-	mov		gs, ax
-	mov		ss, ax
+	jc		END						; jump to halt if error
 
 	jmp		0x1000:0x0				; jump to execute the sector!
 
+END:
+	cli
+	hlt
 times 510 - ($-$$) db 0		; Fill from this line up to byte 510 with 0
 dw 0xAA55					; Boot sign, 511 and 512 byte

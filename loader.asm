@@ -2,7 +2,11 @@
 ; COM program, but we are still in Ring 0.
 ; We will use this loader to set up 32 bit
 ; mode and basic exception handling
- 
+
+org 0x0
+
+cli 
+hlt
 bits 16		; we are still in real mode
  
 ; we are loaded at linear address 0x10000
