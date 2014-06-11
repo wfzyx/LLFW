@@ -1,12 +1,11 @@
 ; Pythonix Bootloader
 
-org		0x7c00				; Load by BIOS in there
-bits	16					; 16 bits real mode
-start: 	jmp     boot
+[BITS 16]					; 16 bits real mode
+[ORG 0x7C00]				; Load by BIOS in there
+start: 	JMP     boot
 
 ; BPB
 ; This block must after 3 bytes in the beginning of the file, use nop if needed
-
 bpbOEM					db "Pythonix"
 bpbBytesPerSector:  	DW 512
 bpbSectorsPerCluster: 	DB 1
@@ -30,30 +29,74 @@ bsFileSystem: 	        DB "FAT12   "		; Must be 08 bytes
 ; Main Routine
 
 
-boot:	
+boot:
+	reset_drive:
+	MOV 	AH, 0x00
+	INT 	13h 				; Reset disk
+	OR 		AH, AH
+	JNZ		reset_drive
 
-.reset_floppy:
-	mov		ax, 0x0
-	int 	0x13
+	MOV 	AX, 0x00
+	MOV 	ES, AX 				; Load location
+	MOV 	BX, 0x1000
+	MOV 	AH, 0x02 			; int 13 function
+	MOV 	AL, 0x02 			; number of sectors to read
+	MOV 	CH, 0x00 			; cylinder	
+	MOV 	CL, 0x02			; Second disk sector
+	MOV 	DH, 0x00 			; Head
+	INT 	13h					; Read sectors
+	OR 		AH, AH
+	JNZ		reset_drive
 
-.read:
-	mov		dl, 0x0					; drive number. Remember Drive 0 is floppy drive.
-	mov		dh, 0x0					; head number (0=base)
-	mov		ch, 0x01				; we are reading the second sector past us, so its still on track 1
-	mov		cl, 0x02				; sector to read (The second sector)
-	mov		bx, 0x1000				
-	mov		es, bx
-	mov		ds, bx
-	xor		bx, bx 					; set buffer
-	mov		ah, 0x02				; read floppy sector function
-	mov		al, 0x01				; read 1 sector
-	int		0x13					; call BIOS - Read the sector
-	jc		END						; jump to halt if error
+	CLI 						; Disable interrupts
 
-	jmp		0x1000:0x0				; jump to execute the sector!
+	XOR		AX, AX
+	MOV		DS, AX				; Set data seg to 0 to lgdt
 
-END:
-	cli
-	hlt
+	LGDT 	[gdt_desc]			; Load GDT descriptor
+
+	MOV 	EAX, CR0			
+	OR 		EAX, 0x01 			; Set to True bit 0
+	MOV 	CR0, EAX
+
+	JMP 	0x08:clear_pipe		; Jump to code seg, offset clear_pipe
+
+[BITS 32]
+clear_pipe:
+	MOV 	AX, 0x10 			; Save data seg indentifyer
+	MOV 	DS, AX 				; move a valid data seg into DS
+	MOV 	SS, AX				; same for SS
+	MOV 	ESP, 0x090000
+	JMP 	0x08:0x01000
+
+gdt:                    ; Address for the GDT
+
+gdt_null:               ; Null Segment
+        dd 0
+        dd 0
+
+gdt_code:               ; Code segment, read/execute, nonconforming
+        dw 0FFFFh
+        dw 0
+        db 0
+        db 10011010b
+        db 11001111b
+        db 0
+
+gdt_data:               ; Data segment, read/write, expand down
+        dw 0FFFFh
+        dw 0
+        db 0
+        db 10010010b
+        db 11001111b
+        db 0
+
+gdt_end:                ; Used to calculate the size of the GDT
+
+
+gdt_desc:                       ; The GDT descriptor
+        dw gdt_end - gdt - 1    ; Limit (size)
+        dd gdt                  ; Address of the GDT
+
 times 510 - ($-$$) db 0		; Fill from this line up to byte 510 with 0
 dw 0xAA55					; Boot sign, 511 and 512 byte
