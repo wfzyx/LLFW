@@ -39,6 +39,7 @@ boot:
 	MOV 	AX, 0x00
 	MOV 	ES, AX 				; Load location
 	MOV 	BX, 0x1000
+
 	MOV 	AH, 0x02 			; int 13 function
 	MOV 	AL, 0x02 			; number of sectors to read
 	MOV 	CH, 0x00 			; cylinder	
@@ -67,6 +68,8 @@ clear_pipe:
 	MOV 	DS, AX 				; move a valid data seg into DS
 	MOV 	SS, AX				; same for SS
 	MOV 	ESP, 0x090000
+hang:
+	JMP 	hang
 	JMP 	0x08:0x01000
 
 gdt:                    ; Address for the GDT

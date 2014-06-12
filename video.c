@@ -14,7 +14,7 @@ void clrscr () {
 }
 
 void print (const char *_message) {
-	unsigned char *vidmem = (unsigned char *)0xB8000);
+	unsigned char *vidmem = (unsigned char *)0xB8000;
 	unsigned short offset;
 	unsigned long i;
 
