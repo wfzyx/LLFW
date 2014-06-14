@@ -68,8 +68,7 @@ clear_pipe:
 	MOV 	DS, AX 				; move a valid data seg into DS
 	MOV 	SS, AX				; same for SS
 	MOV 	ESP, 0x090000
-hang:
-	JMP 	hang
+
 	JMP 	0x08:0x01000
 
 gdt:                    ; Address for the GDT
