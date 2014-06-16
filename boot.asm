@@ -53,11 +53,10 @@ boot:
 
 	XOR		AX, AX
 	MOV		DS, AX				; Set data seg to 0 to lgdt
-
 	LGDT 	[gdt_desc]			; Load GDT descriptor
 
 	MOV 	EAX, CR0			
-	OR 		EAX, 0x01 			; Set to True bit 0
+	OR 		AL, 0x01 			; Set to True bit 0
 	MOV 	CR0, EAX
 
 	JMP 	0x08:clear_pipe		; Jump to code seg, offset clear_pipe
