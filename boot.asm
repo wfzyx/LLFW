@@ -68,7 +68,7 @@ clear_pipe:
 	MOV 	SS, AX				; same for SS
 	MOV 	ESP, 0x090000
 
-	JMP 	0x08:0x01000
+	CALL 	0x08:0x01000
 
 gdt:                    ; Address for the GDT
 
