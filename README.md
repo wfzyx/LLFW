@@ -10,5 +10,4 @@ Documentation and Resources
 Contact
 -------
 
-[Forum](http://ost.io/@vhpanisa/LLFW) or [E-mail](mailto:victor.panisa@gmail.com)
-
+[E-mail](mailto:victor.panisa@gmail.com)
